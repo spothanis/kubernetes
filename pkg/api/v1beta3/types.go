@@ -222,6 +222,8 @@ type VolumeSource struct {
 	Glusterfs *GlusterfsVolumeSource `json:"glusterfs" description:"Glusterfs volume that will be mounted on the host machine "`
 	// PersistentVolumeClaimVolumeSource represents a reference to a PersistentVolumeClaim in the same namespace
 	PersistentVolumeClaimVolumeSource *PersistentVolumeClaimVolumeSource `json:"persistentVolumeClaim,omitempty" description:"a reference to a PersistentVolumeClaim in the same namespace"`
+    // CinderPersistentDisk represents a cinder volume attached and mounted on kubelets host machine
+    CinderPersistentDisk *CinderPersistentDiskVolumeSource `json:"cinderPersistentDisk" description:"Cinder volume attached to host machine"`
 }
 
 type PersistentVolumeClaimVolumeSource struct {
@@ -485,6 +487,21 @@ type ISCSIVolumeSource struct {
 	// Optional: Defaults to false (read/write). ReadOnly here will force
 	// the ReadOnly setting in VolumeMounts.
 	ReadOnly bool `json:"readOnly,omitempty" description:"read-only if true, read-write otherwise (false or unspecified)"`
+}
+
+// CinderPersistentDisk represents a Persistent Disk resource in Openstack.
+// A Cinder volume must exist and be formatted before mounting to a container.
+// The disk must also be in the same region as the kubelet.
+type CinderPersistentDiskVolumeSource struct {
+	// Unique name of the PD resource. Used to identify the disk in cinder volume
+	PDName string `json:"pdName"`
+	// Required: Filesystem type to mount.
+	// Must be a filesystem type supported by the host operating system.
+	// Only ext3 and ext4 are allowed
+	FSType string `json:"fsType,omitempty"`
+	// Optional: Defaults to false (read/write). ReadOnly here will force
+	// the ReadOnly setting in VolumeMounts.
+	ReadOnly bool `json:"readOnly,omitempty"`
 }
 
 // ContainerPort represents a network port in a single container.
