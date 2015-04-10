@@ -92,6 +92,13 @@ func deepCopy_v1_Capabilities(in Capabilities, out *Capabilities, c *conversion.
 	return nil
 }
 
+func deepCopy_v1_CinderVolumeSource(in CinderVolumeSource, out *CinderVolumeSource, c *conversion.Cloner) error {
+	out.VolID = in.VolID
+	out.FSType = in.FSType
+	out.ReadOnly = in.ReadOnly
+	return nil
+}
+
 func deepCopy_v1_ComponentCondition(in ComponentCondition, out *ComponentCondition, c *conversion.Cloner) error {
 	out.Type = in.Type
 	out.Status = in.Status
@@ -1216,6 +1223,14 @@ func deepCopy_v1_PersistentVolumeSource(in PersistentVolumeSource, out *Persiste
 	} else {
 		out.ISCSI = nil
 	}
+	if in.Cinder != nil {
+		out.Cinder = new(CinderVolumeSource)
+		if err := deepCopy_v1_CinderVolumeSource(*in.Cinder, out.Cinder, c); err != nil {
+			return err
+		}
+	} else {
+		out.Cinder = nil
+	}
 	return nil
 }
 
@@ -2195,6 +2210,14 @@ func deepCopy_v1_VolumeSource(in VolumeSource, out *VolumeSource, c *conversion.
 	} else {
 		out.RBD = nil
 	}
+	if in.Cinder != nil {
+		out.Cinder = new(CinderVolumeSource)
+		if err := deepCopy_v1_CinderVolumeSource(*in.Cinder, out.Cinder, c); err != nil {
+			return err
+		}
+	} else {
+		out.Cinder = nil
+	}
 	return nil
 }
 
@@ -2233,6 +2256,7 @@ func init() {
 		deepCopy_v1_AWSElasticBlockStoreVolumeSource,
 		deepCopy_v1_Binding,
 		deepCopy_v1_Capabilities,
+		deepCopy_v1_CinderVolumeSource,
 		deepCopy_v1_ComponentCondition,
 		deepCopy_v1_ComponentStatus,
 		deepCopy_v1_ComponentStatusList,
