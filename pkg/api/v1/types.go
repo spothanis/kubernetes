@@ -206,6 +206,8 @@ type VolumeSource struct {
 	PersistentVolumeClaim *PersistentVolumeClaimVolumeSource `json:"persistentVolumeClaim,omitempty" description:"a reference to a PersistentVolumeClaim in the same namespace; see http://releases.k8s.io/HEAD/docs/user-guide/persistent-volumes.md#persistentvolumeclaims"`
 	// RBD represents a Rados Block Device mount on the host that shares a pod's lifetime
 	RBD *RBDVolumeSource `json:"rbd,omitempty" description:"rados block volume that will be mounted on the host machine; see http://releases.k8s.io/HEAD/examples/rbd/README.md"`
+	// Cinder represents a cinder volume attached and mounted on kubelets host machine
+	Cinder *CinderVolumeSource `json:"cinder,omitempty" description:"Cinder volume that will be attached and mounted on the host machine "`
 }
 
 type PersistentVolumeClaimVolumeSource struct {
@@ -238,6 +240,8 @@ type PersistentVolumeSource struct {
 	// ISCSI represents an ISCSI Disk resource that is attached to a
 	// kubelet's host machine and then exposed to the pod.
 	ISCSI *ISCSIVolumeSource `json:"iscsi,omitempty" description:"an iSCSI disk resource provisioned by an admin"`
+	// Cinder represents a cinder volume attached and mounted on kubelets host machine
+	Cinder *CinderVolumeSource `json:"cinder,omitempty" description:"Cinder volume that will be attached and mounted on the host machine "`
 }
 
 type PersistentVolume struct {
@@ -422,6 +426,21 @@ type RBDVolumeSource struct {
 	// Optional: Defaults to false (read/write). ReadOnly here will force
 	// the ReadOnly setting in VolumeMounts.
 	ReadOnly bool `json:"readOnly,omitempty"  description:"rbd volume to be mounted with read-only permissions; see http://releases.k8s.io/HEAD/examples/rbd/README.md#how-to-use-it"`
+}
+
+// CinderVolumeSource represents a cinder volume resource in Openstack.
+// A Cinder volume must exist before mounting to a container.
+// The volume must also be in the same region as the kubelet.
+type CinderVolumeSource struct {
+	// volume id used to identify the volume in cinder
+	VolumeID string `json:"volumeID" description:"Cinder volume id"`
+	// Required: Filesystem type to mount.
+	// Must be a filesystem type supported by the host operating system.
+	// Only ext3 and ext4 are allowed
+	FSType string `json:"fsType,omitempty" description:"FStype to which the volume will be formatted if not already of that type; ext3 and ext4 are supported"`
+	// Optional: Defaults to false (read/write). ReadOnly here will force
+	// the ReadOnly setting in VolumeMounts.
+	ReadOnly bool `json:"readOnly,omitempty" description:"readonly if true"`
 }
 
 const (

@@ -12024,6 +12024,10 @@
       "$ref": "v1.ISCSIVolumeSource",
       "description": "an iSCSI disk resource provisioned by an admin"
      },
+     "cinder": {
+      "$ref": "v1.CinderVolumeSource",
+      "description": "Cinder volume that will be attached and mounted on the host machine "
+     },
      "accessModes": {
       "type": "array",
       "items": {
@@ -12236,6 +12240,26 @@
      }
     }
    },
+   "v1.CinderVolumeSource": {
+    "id": "v1.CinderVolumeSource",
+    "required": [
+     "volumeID"
+    ],
+    "properties": {
+     "volumeID": {
+      "type": "string",
+      "description": "Cinder volume id"
+     },
+     "fsType": {
+      "type": "string",
+      "description": "FStype to which the volume will be formatted if not already of that type; ext3 and ext4 are supported"
+     },
+     "readOnly": {
+      "type": "boolean",
+      "description": "readonly if true"
+     }
+    }
+   },
    "v1.PersistentVolumeStatus": {
     "id": "v1.PersistentVolumeStatus",
     "properties": {
@@ -12425,6 +12449,10 @@
      "rbd": {
       "$ref": "v1.RBDVolumeSource",
       "description": "rados block volume that will be mounted on the host machine; see http://releases.k8s.io/HEAD/examples/rbd/README.md"
+     },
+     "cinder": {
+      "$ref": "v1.CinderVolumeSource",
+      "description": "Cinder volume that will be attached and mounted on the host machine "
      }
     }
    },
