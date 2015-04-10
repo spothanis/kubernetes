@@ -1197,6 +1197,9 @@ func init() {
 			if err := s.Convert(&in.PersistentVolumeClaimVolumeSource, &out.PersistentVolumeClaimVolumeSource, 0); err != nil {
 				return err
 			}
+			if err := s.Convert(&in.CinderVolume, &out.CinderVolume, 0); err != nil {
+				return err
+			}
 			return nil
 		},
 		func(in *VolumeSource, out *newer.VolumeSource, s conversion.Scope) error {
@@ -1228,6 +1231,9 @@ func init() {
 				return err
 			}
 			if err := s.Convert(&in.Glusterfs, &out.Glusterfs, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.CinderVolume, &out.CinderVolume, 0); err != nil {
 				return err
 			}
 			return nil

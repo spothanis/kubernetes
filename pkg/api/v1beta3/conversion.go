@@ -40,6 +40,18 @@ func init() {
 			out.ReadOnly = in.ReadOnly
 			return nil
 		},
+		func(in *CinderVolumeSource, out *newer.CinderVolumeSource, s conversion.Scope) error {
+			out.VolID = in.VolID
+			out.FSType = in.FSType
+			out.ReadOnly = in.ReadOnly
+			return nil
+		},
+		func(in *newer.CinderVolumeSource, out *CinderVolumeSource, s conversion.Scope) error {
+			out.VolID = in.VolID
+			out.FSType = in.FSType
+			out.ReadOnly = in.ReadOnly
+			return nil
+		},
 		func(in *Binding, out *newer.Binding, s conversion.Scope) error {
 			if err := s.Convert(&in.TypeMeta, &out.TypeMeta, 0); err != nil {
 				return err
@@ -1587,6 +1599,9 @@ func init() {
 			if err := s.Convert(&in.Glusterfs, &out.Glusterfs, 0); err != nil {
 				return err
 			}
+			if err := s.Convert(&in.CinderVolume, &out.CinderVolume, 0); err != nil {
+				return err
+			}
 			return nil
 		},
 		func(in *newer.PersistentVolumeSource, out *PersistentVolumeSource, s conversion.Scope) error {
@@ -1600,6 +1615,9 @@ func init() {
 				return err
 			}
 			if err := s.Convert(&in.Glusterfs, &out.Glusterfs, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.CinderVolume, &out.CinderVolume, 0); err != nil {
 				return err
 			}
 			return nil
@@ -2690,6 +2708,9 @@ func init() {
 			if err := s.Convert(&in.PersistentVolumeClaimVolumeSource, &out.PersistentVolumeClaimVolumeSource, 0); err != nil {
 				return err
 			}
+			if err := s.Convert(&in.CinderVolume, &out.CinderVolume, 0); err != nil {
+				return err
+			}
 			return nil
 		},
 		func(in *newer.VolumeSource, out *VolumeSource, s conversion.Scope) error {
@@ -2721,6 +2742,9 @@ func init() {
 				return err
 			}
 			if err := s.Convert(&in.PersistentVolumeClaimVolumeSource, &out.PersistentVolumeClaimVolumeSource, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.CinderVolume, &out.CinderVolume, 0); err != nil {
 				return err
 			}
 			return nil

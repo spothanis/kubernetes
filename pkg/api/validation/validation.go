@@ -323,7 +323,10 @@ func validateSource(source *api.VolumeSource) errs.ValidationErrorList {
 		numVolumes++
 		allErrs = append(allErrs, validatePersistentClaimVolumeSource(source.PersistentVolumeClaimVolumeSource).Prefix("persistentVolumeClaim")...)
 	}
-
+	if source.CinderVolume != nil {
+		numVolumes++
+		allErrs = append(allErrs, validateCinderVolumeSource(source.CinderVolume).Prefix("cinderVolume")...)
+	}
 	if numVolumes != 1 {
 		allErrs = append(allErrs, errs.NewFieldInvalid("", source, "exactly 1 volume type is required"))
 	}
@@ -432,6 +435,17 @@ func validateGlusterfs(glusterfs *api.GlusterfsVolumeSource) errs.ValidationErro
 	return allErrs
 }
 
+func validateCinderVolumeSource(PD *api.CinderVolumeSource) errs.ValidationErrorList {
+	allErrs := errs.ValidationErrorList{}
+	if PD.VolID == "" {
+		allErrs = append(allErrs, errs.NewFieldRequired("volId"))
+	}
+	if PD.FSType == "" {
+		allErrs = append(allErrs, errs.NewFieldRequired("fsType"))
+	}
+	return allErrs
+}
+
 func ValidatePersistentVolumeName(name string, prefix bool) (bool, string) {
 	return nameIsDNSSubdomain(name, prefix)
 }
@@ -464,6 +478,10 @@ func ValidatePersistentVolume(pv *api.PersistentVolume) errs.ValidationErrorList
 	if pv.Spec.Glusterfs != nil {
 		numVolumes++
 		allErrs = append(allErrs, validateGlusterfs(pv.Spec.Glusterfs).Prefix("glusterfs")...)
+	}
+	if pv.Spec.CinderVolume != nil {
+		numVolumes++
+		allErrs = append(allErrs, validateCinderVolumeSource(pv.Spec.CinderVolume).Prefix("cinderVolume")...)
 	}
 	if numVolumes != 1 {
 		allErrs = append(allErrs, errs.NewFieldInvalid("", pv.Spec.PersistentVolumeSource, "exactly 1 volume type is required"))
