@@ -85,6 +85,8 @@ type VolumeSource struct {
 	ISCSI *ISCSIVolumeSource `json:"iscsi" description:"iSCSI disk attached to host machine on demand"`
 	// Glusterfs represents a Glusterfs mount on the host that shares a pod's lifetime
 	Glusterfs *GlusterfsVolumeSource `json:"glusterfs" description:"Glusterfs volume that will be mounted on the host machine "`
+	// CinderPersistentDisk represents a cinder volume attached and mounted on kubelets host machine
+	CinderPersistentDisk *CinderPersistentDiskVolumeSource `json:"cinderPersistentDisk" description:"Cinder volume attached to host machine"`
 }
 
 // Similar to VolumeSource but meant for the administrator who creates PVs.
@@ -322,6 +324,21 @@ type GlusterfsVolumeSource struct {
 	// Optional: Defaults to false (read/write). ReadOnly here will force
 	// the Glusterfs volume to be mounted with read-only permissions
 	ReadOnly bool `json:"readOnly,omitempty" description:"glusterfs volume to be mounted with read-only permissions"`
+}
+
+// CinderPersistentDisk represents a Persistent Disk resource in Openstack.
+// A Cinder volume must exist and be formatted before mounting to a container.
+// The disk must also be in the same region as the kubelet.
+type CinderPersistentDiskVolumeSource struct {
+	// Unique name of the PD resource. Used to identify the disk in cinder volume
+	PDName string `json:"pdName"`
+	// Required: Filesystem type to mount.
+	// Must be a filesystem type supported by the host operating system.
+	// Only ext3 and ext4 are allowed
+	FSType string `json:"fsType,omitempty"`
+	// Optional: Defaults to false (read/write). ReadOnly here will force
+	// the ReadOnly setting in VolumeMounts.
+	ReadOnly bool `json:"readOnly,omitempty"`
 }
 
 // VolumeMount describes a mounting of a Volume within a container.

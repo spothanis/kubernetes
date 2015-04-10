@@ -23,6 +23,7 @@ import (
 
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/api"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/client"
+	"github.com/GoogleCloudPlatform/kubernetes/pkg/cloudprovider"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/types"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/util"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/volume"
@@ -76,6 +77,10 @@ func (vh *volumeHost) NewWrapperCleaner(spec *api.Volume, podUID types.UID) (vol
 		return nil, errUnsupportedVolumeType
 	}
 	return c, nil
+}
+
+func (vh *volumeHost) GetCloudProvider() cloudprovider.Interface {
+	return vh.kubelet.cloud
 }
 
 func (kl *Kubelet) newVolumeBuilderFromPlugins(spec *api.Volume, podRef *api.ObjectReference) (volume.Builder, error) {

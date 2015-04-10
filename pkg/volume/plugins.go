@@ -23,6 +23,7 @@ import (
 
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/api"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/client"
+	"github.com/GoogleCloudPlatform/kubernetes/pkg/cloudprovider"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/types"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/util"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/util/errors"
@@ -100,6 +101,9 @@ type VolumeHost interface {
 	// the provided spec.  See comments on NewWrapperBuilder for more
 	// context.
 	NewWrapperCleaner(spec *api.Volume, podUID types.UID) (Cleaner, error)
+
+	//Get cloud provider from kubelet
+	GetCloudProvider() cloudprovider.Interface
 }
 
 // VolumePluginMgr tracks registered plugins.

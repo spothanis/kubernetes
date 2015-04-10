@@ -315,6 +315,10 @@ func validateSource(source *api.VolumeSource) errs.ValidationErrorList {
 		numVolumes++
 		allErrs = append(allErrs, validateGlusterfs(source.Glusterfs).Prefix("glusterfs")...)
 	}
+	if source.CinderPersistentDisk != nil {
+		numVolumes++
+		allErrs = append(allErrs, validateCinderPersistentDiskSource(source.CinderPersistentDisk).Prefix("cinderPersistentDisk")...)
+	}
 	if numVolumes != 1 {
 		allErrs = append(allErrs, errs.NewFieldInvalid("", source, "exactly 1 volume type is required"))
 	}
@@ -397,6 +401,17 @@ func validateGlusterfs(glusterfs *api.GlusterfsVolumeSource) errs.ValidationErro
 	}
 	if glusterfs.Path == "" {
 		allErrs = append(allErrs, errs.NewFieldRequired("path"))
+	}
+	return allErrs
+}
+
+func validateCinderPersistentDiskSource(PD *api.CinderPersistentDiskVolumeSource) errs.ValidationErrorList {
+	allErrs := errs.ValidationErrorList{}
+	if PD.PDName == "" {
+		allErrs = append(allErrs, errs.NewFieldRequired("pdName"))
+	}
+	if PD.FSType == "" {
+		allErrs = append(allErrs, errs.NewFieldRequired("fsType"))
 	}
 	return allErrs
 }
