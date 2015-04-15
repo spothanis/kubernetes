@@ -80,7 +80,7 @@ func (vh *volumeHost) NewWrapperCleaner(spec *volume.Spec, podUID types.UID) (vo
 }
 
 func (vh *volumeHost) GetCloudProvider() cloudprovider.Interface {
-    return vh.kubelet.cloud
+	return vh.kubelet.cloud
 }
 
 func (kl *Kubelet) newVolumeBuilderFromPlugins(spec *volume.Spec, podRef *api.ObjectReference, opts volume.VolumeOptions) (volume.Builder, error) {

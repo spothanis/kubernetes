@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cinder_pd
+package cinder
 
 import (
 	"os"
@@ -30,21 +30,21 @@ func TestCanSupport(t *testing.T) {
 	plugMgr := volume.VolumePluginMgr{}
 	plugMgr.InitPlugins(ProbeVolumePlugins(), volume.NewFakeVolumeHost("/tmp/fake", nil, nil))
 
-	plug, err := plugMgr.FindPluginByName("kubernetes.io/cinder-pd")
+	plug, err := plugMgr.FindPluginByName("kubernetes.io/cinder")
 	if err != nil {
 		t.Errorf("Can't find the plugin by name")
 	}
-	if plug.Name() != "kubernetes.io/cinder-pd" {
+	if plug.Name() != "kubernetes.io/cinder" {
 		t.Errorf("Wrong name: %s", plug.Name())
 	}
-	if !plug.CanSupport(&api.Volume{VolumeSource: api.VolumeSource{CinderPersistentDisk: &api.CinderPersistentDiskVolumeSource{}}}) {
+	if !plug.CanSupport(&volume.Spec{VolumeSource: api.VolumeSource{CinderVolume: &api.CinderVolumeSource{}}}) {
 		t.Errorf("Expected true")
 	}
 }
 
 type fakePDManager struct{}
 
-func (fake *fakePDManager) AttachDisk(pd *cinderPersistentDisk, globalPDPath string) error {
+func (fake *fakePDManager) AttachDisk(pd *cinderVolume, globalPDPath string) error {
 	globalPath := makeGlobalPDName(pd.plugin.host, pd.pdName)
 	err := os.MkdirAll(globalPath, 0750)
 	if err != nil {
@@ -53,7 +53,7 @@ func (fake *fakePDManager) AttachDisk(pd *cinderPersistentDisk, globalPDPath str
 	return nil
 }
 
-func (fake *fakePDManager) DetachDisk(pd *cinderPersistentDisk) error {
+func (fake *fakePDManager) DetachDisk(pd *cinderVolume) error {
 	globalPath := makeGlobalPDName(pd.plugin.host, pd.pdName)
 	err := os.RemoveAll(globalPath)
 	if err != nil {
@@ -66,20 +66,20 @@ func TestPlugin(t *testing.T) {
 	plugMgr := volume.VolumePluginMgr{}
 	plugMgr.InitPlugins(ProbeVolumePlugins(), volume.NewFakeVolumeHost("/tmp/fake", nil, nil))
 
-	plug, err := plugMgr.FindPluginByName("kubernetes.io/cinder-pd")
+	plug, err := plugMgr.FindPluginByName("kubernetes.io/cinder")
 	if err != nil {
 		t.Errorf("Can't find the plugin by name")
 	}
 	spec := &api.Volume{
 		Name: "vol1",
 		VolumeSource: api.VolumeSource{
-			CinderPersistentDisk: &api.CinderPersistentDiskVolumeSource{
-				PDName: "pd",
+			CinderVolume: &api.CinderVolumeSource{
+				VolID:  "pd",
 				FSType: "ext4",
 			},
 		},
 	}
-	builder, err := plug.(*cinderPersistentDiskPlugin).newBuilderInternal(spec, types.UID("poduid"), &fakePDManager{}, &mount.FakeMounter{})
+	builder, err := plug.(*cinderPlugin).newBuilderInternal(volume.NewSpecFromVolume(spec), types.UID("poduid"), &fakePDManager{}, &mount.FakeMounter{})
 	if err != nil {
 		t.Errorf("Failed to make a new Builder: %v", err)
 	}
@@ -88,7 +88,7 @@ func TestPlugin(t *testing.T) {
 	}
 
 	path := builder.GetPath()
-	if path != "/tmp/fake/pods/poduid/volumes/kubernetes.io~cinder-pd/vol1" {
+	if path != "/tmp/fake/pods/poduid/volumes/kubernetes.io~cinder/vol1" {
 		t.Errorf("Got unexpected path: %s", path)
 	}
 
@@ -110,7 +110,7 @@ func TestPlugin(t *testing.T) {
 		}
 	}
 
-	cleaner, err := plug.(*cinderPersistentDiskPlugin).newCleanerInternal("vol1", types.UID("poduid"), &fakePDManager{}, &mount.FakeMounter{})
+	cleaner, err := plug.(*cinderPlugin).newCleanerInternal("vol1", types.UID("poduid"), &fakePDManager{}, &mount.FakeMounter{})
 	if err != nil {
 		t.Errorf("Failed to make a new Cleaner: %v", err)
 	}
@@ -125,33 +125,5 @@ func TestPlugin(t *testing.T) {
 		t.Errorf("TearDown() failed, volume path still exists: %s", path)
 	} else if !os.IsNotExist(err) {
 		t.Errorf("SetUp() failed: %v", err)
-	}
-}
-
-func TestPluginLegacy(t *testing.T) {
-	plugMgr := volume.VolumePluginMgr{}
-	plugMgr.InitPlugins(ProbeVolumePlugins(), volume.NewFakeVolumeHost("/tmp/fake", nil, nil))
-
-	plug, err := plugMgr.FindPluginByName("cinder-pd")
-	if err != nil {
-		t.Errorf("Can't find the plugin by name")
-	}
-	if plug.Name() != "cinder-pd" {
-		t.Errorf("Wrong name: %s", plug.Name())
-	}
-	if plug.CanSupport(&api.Volume{VolumeSource: api.VolumeSource{CinderPersistentDisk: &api.CinderPersistentDiskVolumeSource{}}}) {
-		t.Errorf("Expected false")
-	}
-
-	if _, err := plug.NewBuilder(&api.Volume{VolumeSource: api.VolumeSource{CinderPersistentDisk: &api.CinderPersistentDiskVolumeSource{}}}, &api.ObjectReference{UID: types.UID("poduid")}); err == nil {
-		t.Errorf("Expected failiure")
-	}
-
-	cleaner, err := plug.NewCleaner("vol1", types.UID("poduid"))
-	if err != nil {
-		t.Errorf("Failed to make a new Cleaner: %v", err)
-	}
-	if cleaner == nil {
-		t.Errorf("Got a nil Cleaner: %v")
 	}
 }

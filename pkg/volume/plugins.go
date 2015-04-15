@@ -113,9 +113,8 @@ type VolumeHost interface {
 	// context.
 	NewWrapperCleaner(spec *Spec, podUID types.UID) (Cleaner, error)
 
-    //Get cloud provider from kubelet
-    GetCloudProvider() cloudprovider.Interface
-
+	//Get cloud provider from kubelet
+	GetCloudProvider() cloudprovider.Interface
 }
 
 // VolumePluginMgr tracks registered plugins.

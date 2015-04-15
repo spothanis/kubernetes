@@ -14,10 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cinder_pd
+package cinder
 
 import (
-	"fmt"
 	"os"
 	"path"
 
@@ -32,58 +31,49 @@ import (
 
 // This is the primary entrypoint for volume plugins.
 func ProbeVolumePlugins() []volume.VolumePlugin {
-	return []volume.VolumePlugin{&cinderPersistentDiskPlugin{nil, false}, &cinderPersistentDiskPlugin{nil, true}}
+	return []volume.VolumePlugin{&cinderPlugin{nil}}
 }
 
-type cinderPersistentDiskPlugin struct {
-	host       volume.VolumeHost
-	legacyMode bool // if set, plugin answers to the legacy name
+type cinderPlugin struct {
+	host volume.VolumeHost
 }
 
-var _ volume.VolumePlugin = &cinderPersistentDiskPlugin{}
+var _ volume.VolumePlugin = &cinderPlugin{}
 
 const (
-	cinderPersistentDiskPluginName       = "kubernetes.io/cinder-pd"
-	cinderPersistentDiskPluginLegacyName = "cinder-pd"
+	cinderPersistentDiskPluginName = "kubernetes.io/cinder"
 )
 
-func (plugin *cinderPersistentDiskPlugin) Init(host volume.VolumeHost) {
+func (plugin *cinderPlugin) Init(host volume.VolumeHost) {
 	plugin.host = host
 }
 
-func (plugin *cinderPersistentDiskPlugin) Name() string {
-	if plugin.legacyMode {
-		return cinderPersistentDiskPluginLegacyName
-	}
+func (plugin *cinderPlugin) Name() string {
 	return cinderPersistentDiskPluginName
 }
 
-func (plugin *cinderPersistentDiskPlugin) CanSupport(spec *api.Volume) bool {
-	if plugin.legacyMode {
-		// Legacy mode instances can be cleaned up but not created anew.
-		return false
-	}
-
-	if spec.CinderPersistentDisk != nil {
-		return true
-	}
-	return false
+func (plugin *cinderPlugin) CanSupport(spec *volume.Spec) bool {
+	return spec.PersistentVolumeSource.CinderVolume != nil || spec.VolumeSource.CinderVolume != nil
 }
 
-func (plugin *cinderPersistentDiskPlugin) NewBuilder(spec *api.Volume, podRef *api.ObjectReference) (volume.Builder, error) {
+func (plugin *cinderPlugin) NewBuilder(spec *volume.Spec, podRef *api.ObjectReference, _ volume.VolumeOptions) (volume.Builder, error) {
 	// Inject real implementations here, test through the internal function.
 	return plugin.newBuilderInternal(spec, podRef.UID, &CinderDiskUtil{}, mount.New())
 }
 
-func (plugin *cinderPersistentDiskPlugin) newBuilderInternal(spec *api.Volume, podUID types.UID, manager cdManager, mounter mount.Interface) (volume.Builder, error) {
-	if plugin.legacyMode {
-		// Legacy mode instances can be cleaned up but not created anew.
-		return nil, fmt.Errorf("legacy mode: can not create new instances")
+func (plugin *cinderPlugin) newBuilderInternal(spec *volume.Spec, podUID types.UID, manager cdManager, mounter mount.Interface) (volume.Builder, error) {
+
+	var cinder *api.CinderVolumeSource
+	if spec.VolumeSource.CinderVolume != nil {
+		cinder = spec.VolumeSource.CinderVolume
+	} else {
+		cinder = spec.PersistentVolumeSource.CinderVolume
 	}
-	pdName := spec.CinderPersistentDisk.PDName
-	fsType := spec.CinderPersistentDisk.FSType
-	readOnly := spec.CinderPersistentDisk.ReadOnly
-	return &cinderPersistentDisk{
+
+	pdName := cinder.VolID
+	fsType := cinder.FSType
+	readOnly := cinder.ReadOnly
+	return &cinderVolume{
 		podUID:  podUID,
 		volName: spec.Name,
 		pdName:  pdName,
@@ -94,42 +84,37 @@ func (plugin *cinderPersistentDiskPlugin) newBuilderInternal(spec *api.Volume, p
 		mounter:     mounter,
 		diskMounter: &cinderSafeFormatAndMount{mounter, exec.New()},
 		plugin:      plugin,
-		legacyMode:  false,
 	}, nil
 }
 
-func (plugin *cinderPersistentDiskPlugin) NewCleaner(volName string, podUID types.UID) (volume.Cleaner, error) {
+func (plugin *cinderPlugin) NewCleaner(volName string, podUID types.UID) (volume.Cleaner, error) {
 	// Inject real implementations here, test through the internal function.
 	return plugin.newCleanerInternal(volName, podUID, &CinderDiskUtil{}, mount.New())
 }
 
-func (plugin *cinderPersistentDiskPlugin) newCleanerInternal(volName string, podUID types.UID, manager cdManager, mounter mount.Interface) (volume.Cleaner, error) {
-	legacy := false
-	if plugin.legacyMode {
-		legacy = true
-	}
-	return &cinderPersistentDisk{
+func (plugin *cinderPlugin) newCleanerInternal(volName string, podUID types.UID, manager cdManager, mounter mount.Interface) (volume.Cleaner, error) {
+
+	return &cinderVolume{
 		podUID:      podUID,
 		volName:     volName,
 		manager:     manager,
 		mounter:     mounter,
 		diskMounter: &cinderSafeFormatAndMount{mounter, exec.New()},
 		plugin:      plugin,
-		legacyMode:  legacy,
 	}, nil
 }
 
 // Abstract interface to PD operations.
 type cdManager interface {
 	// Attaches the disk to the kubelet's host machine.
-	AttachDisk(cd *cinderPersistentDisk, globalPDPath string) error
+	AttachDisk(cd *cinderVolume, globalPDPath string) error
 	// Detaches the disk from the kubelet's host machine.
-	DetachDisk(cd *cinderPersistentDisk) error
+	DetachDisk(cd *cinderVolume) error
 }
 
 // cinderPersistentDisk volumes are disk resources provided by C3
 // that are attached to the kubelet's host machine and exposed to the pod.
-type cinderPersistentDisk struct {
+type cinderVolume struct {
 	volName string
 
 	podUID types.UID
@@ -147,26 +132,23 @@ type cinderPersistentDisk struct {
 	mounter mount.Interface
 	// diskMounter provides the interface that is used to mount the actual block device.
 	diskMounter mount.Interface
-	plugin      *cinderPersistentDiskPlugin
-	legacyMode  bool
+	plugin      *cinderPlugin
 }
 
-func detachDiskLogError(cd *cinderPersistentDisk) {
+func detachDiskLogError(cd *cinderVolume) {
 	err := cd.manager.DetachDisk(cd)
 	if err != nil {
 		glog.Warningf("Failed to detach disk: %v (%v)", cd, err)
 	}
 }
 
-func (cd *cinderPersistentDisk) SetUp() error {
+func (cd *cinderVolume) SetUp() error {
 	return cd.SetUpAt(cd.GetPath())
 }
 
 // SetUp attaches the disk and bind mounts to the volume path.
-func (cd *cinderPersistentDisk) SetUpAt(dir string) error {
-	if cd.legacyMode {
-		return fmt.Errorf("legacy mode: can not create new instances")
-	}
+func (cd *cinderVolume) SetUpAt(dir string) error {
+
 	// TODO: handle failed mounts here.
 	mountpoint, err := cd.mounter.IsMountPoint(dir)
 	glog.V(4).Infof("PersistentDisk set up: %s %v %v", dir, mountpoint, err)
@@ -229,21 +211,18 @@ func makeGlobalPDName(host volume.VolumeHost, devName string) string {
 	return path.Join(host.GetPluginDir(cinderPersistentDiskPluginName), "mounts", devName)
 }
 
-func (cd *cinderPersistentDisk) GetPath() string {
+func (cd *cinderVolume) GetPath() string {
 	name := cinderPersistentDiskPluginName
-	if cd.legacyMode {
-		name = cinderPersistentDiskPluginLegacyName
-	}
 	return cd.plugin.host.GetPodVolumeDir(cd.podUID, util.EscapeQualifiedNameForDisk(name), cd.volName)
 }
 
-func (cd *cinderPersistentDisk) TearDown() error {
+func (cd *cinderVolume) TearDown() error {
 	return cd.TearDownAt(cd.GetPath())
 }
 
 // Unmounts the bind mount, and detaches the disk only if the PD
 // resource was the last reference to that disk on the kubelet.
-func (cd *cinderPersistentDisk) TearDownAt(dir string) error {
+func (cd *cinderVolume) TearDownAt(dir string) error {
 	mountpoint, err := cd.mounter.IsMountPoint(dir)
 	if err != nil {
 		return err

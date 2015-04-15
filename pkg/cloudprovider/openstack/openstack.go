@@ -687,7 +687,7 @@ func (os *OpenStack) AttachDisk(diskName string) (string, error) {
 		return "", err
 	}
 
-	compute_id, err := os.getMinionIDbyHostname(cClient)
+	compute_id, err := os.getComputeIDbyHostname(cClient)
 	if err != nil || compute_id == "null" {
 		glog.Errorf("Unable to get minion's id by minion's hostname")
 		return "", err
@@ -725,7 +725,7 @@ func (os *OpenStack) DetachDisk(partialDiskId string) error {
 		Region: os.region,
 	})
 
-	compute_id, err := os.getMinionIDbyHostname(cClient)
+	compute_id, err := os.getComputeIDbyHostname(cClient)
 	if err != nil || compute_id == "" {
 		glog.Errorf("Unable to get minion's ip while detaching disk")
 		return err
@@ -782,7 +782,7 @@ func (os *OpenStack) getVolume(diskName string) (volumes.Volume, error) {
 	return volume, err
 }
 
-func (os *OpenStack) getMinionIDbyHostname(cClient *gophercloud.ServiceClient) (string, error) {
+func (os *OpenStack) getComputeIDbyHostname(cClient *gophercloud.ServiceClient) (string, error) {
 
 	hostname, err := ossys.Hostname()
 

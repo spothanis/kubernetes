@@ -121,8 +121,8 @@ type VolumeSource struct {
 	Glusterfs *GlusterfsVolumeSource `json:"glusterfs" description:"Glusterfs volume that will be mounted on the host machine "`
 	// PersistentVolumeClaimVolumeSource represents a reference to a PersistentVolumeClaim in the same namespace
 	PersistentVolumeClaimVolumeSource *PersistentVolumeClaimVolumeSource `json:"persistentVolumeClaim,omitempty" description:"a reference to a PersistentVolumeClaim in the same namespace"`
-	// CinderPersistentDisk represents a cinder volume attached and mounted on kubelets host machine
-	CinderPersistentDisk *CinderPersistentDiskVolumeSource `json:"cinderPersistentDisk" description:"Cinder volume attached to host machine"`
+	// CinderVolume represents a cinder volume attached and mounted on kubelets host machine
+	CinderVolume *CinderVolumeSource `json:"cinderVolume" description:"Cinder volume that will be attached and mounted on the host machine "`
 }
 
 // Similar to VolumeSource but meant for the administrator who creates PVs.
@@ -140,6 +140,8 @@ type PersistentVolumeSource struct {
 	HostPath *HostPathVolumeSource `json:"hostPath" description:"a HostPath provisioned by a developer or tester; for develment use only"`
 	// Glusterfs represents a Glusterfs volume that is attached to a host and exposed to the pod
 	Glusterfs *GlusterfsVolumeSource `json:"glusterfs" description:"Glusterfs volume resource provisioned by an admin"`
+	// CinderVolume represents a cinder volume attached and mounted on kubelets host machine
+	CinderVolume *CinderVolumeSource `json:"cinderVolume" description:"Cinder volume that will be attached and mounted on the host machine "`
 }
 
 type PersistentVolumeClaimVolumeSource struct {
@@ -358,12 +360,12 @@ type SecretVolumeSource struct {
 	Target ObjectReference `json:"target" description:"target is a reference to a secret"`
 }
 
-// CinderPersistentDisk represents a Persistent Disk resource in Openstack.
-// A Cinder volume must exist and be formatted before mounting to a container.
+// CinderVolumeSource represents a cinder volume resource in Openstack.
+// A Cinder volume must exist before mounting to a container.
 // The disk must also be in the same region as the kubelet.
-type CinderPersistentDiskVolumeSource struct {
+type CinderVolumeSource struct {
 	// Unique name of the PD resource. Used to identify the disk in cinder volume
-	PDName string `json:"pdName"`
+	VolID string `json:"volId"`
 	// Required: Filesystem type to mount.
 	// Must be a filesystem type supported by the host operating system.
 	// Only ext3 and ext4 are allowed

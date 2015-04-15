@@ -203,13 +203,10 @@ type VolumeSource struct {
 	ISCSI *ISCSIVolumeSource `json:"iscsi"`
 	// Glusterfs represents a Glusterfs mount on the host that shares a pod's lifetime
 	Glusterfs *GlusterfsVolumeSource `json:"glusterfs"`
-<<<<<<< HEAD
 	// PersistentVolumeClaimVolumeSource represents a reference to a PersistentVolumeClaim in the same namespace
 	PersistentVolumeClaimVolumeSource *PersistentVolumeClaimVolumeSource `json:"persistentVolumeClaim,omitempty"`
-=======
-	// CinderPersistentDisk represents a cinder volume attached and mounted on kubelets host machine
-	CinderPersistentDisk *CinderPersistentDiskVolumeSource `json:"cinderPersistentDisk"`
->>>>>>> Cinder Volume Plugin
+	// CinderVolume represents a cinder volume attached and mounted on kubelets host machine
+	CinderVolume *CinderVolumeSource `json:"cinderVolume"`
 }
 
 // Similar to VolumeSource but meant for the administrator who creates PVs.
@@ -227,6 +224,8 @@ type PersistentVolumeSource struct {
 	HostPath *HostPathVolumeSource `json:"hostPath"`
 	// Glusterfs represents a Glusterfs volume that is attached to a host and exposed to the pod
 	Glusterfs *GlusterfsVolumeSource `json:"glusterfs"`
+	// CinderVolume represents a cinder volume attached and mounted on kubelets host machine
+	CinderVolume *CinderVolumeSource `json:"cinderVolume"`
 }
 
 type PersistentVolumeClaimVolumeSource struct {
@@ -484,9 +483,9 @@ type GlusterfsVolumeSource struct {
 // CinderPersistentDisk represents a Persistent Disk resource in Openstack.
 // A Cinder volume must exist and be formatted before mounting to a container.
 // The disk must also be in the same region as the kubelet.
-type CinderPersistentDiskVolumeSource struct {
-	// Unique name of the PD resource. Used to identify the disk in cinder volume
-	PDName string `json:"pdName"`
+type CinderVolumeSource struct {
+	// Unique uuid of the volume resource. Used to identify the cinder volume
+	VolID string `json:"volId"`
 	// Required: Filesystem type to mount.
 	// Must be a filesystem type supported by the host operating system.
 	// Only ext3 and ext4 are allowed

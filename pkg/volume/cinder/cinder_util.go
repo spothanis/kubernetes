@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cinder_pd
+package cinder
 
 import (
 	"errors"
@@ -35,7 +35,7 @@ type CinderDiskUtil struct{}
 
 // Attaches a disk specified by a volume.CinderPersistenDisk to the current kubelet.
 // Mounts the disk to it's global path.
-func (util *CinderDiskUtil) AttachDisk(cd *cinderPersistentDisk, globalPDPath string) error {
+func (util *CinderDiskUtil) AttachDisk(cd *cinderVolume, globalPDPath string) error {
 
 	flags := uintptr(0)
 	if cd.readOnly {
@@ -112,7 +112,7 @@ func makeDevicePath(diskid string) string {
 }
 
 // Unmounts the device and detaches the disk from the kubelet's host machine.
-func (util *CinderDiskUtil) DetachDisk(cd *cinderPersistentDisk) error {
+func (util *CinderDiskUtil) DetachDisk(cd *cinderVolume) error {
 
 	globalPDPath := makeGlobalPDName(cd.plugin.host, cd.pdName)
 

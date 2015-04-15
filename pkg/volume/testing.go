@@ -58,7 +58,7 @@ func (f *fakeVolumeHost) GetKubeClient() client.Interface {
 }
 
 func (f *fakeVolumeHost) GetCloudProvider() cloudprovider.Interface {
-    return f.cloud
+	return f.cloud
 }
 
 func (f *fakeVolumeHost) NewWrapperBuilder(spec *Spec, podRef *api.ObjectReference, opts VolumeOptions) (Builder, error) {
