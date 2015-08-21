@@ -26,5 +26,5 @@ spec:
   volumes:
     - name: mysql-persistent-storage
       cinder:
-        id: bd82f7e2-wece-4c01-a505-4acf60b07f4a
+        volumeID: bd82f7e2-wece-4c01-a505-4acf60b07f4a
         fsType: ext4

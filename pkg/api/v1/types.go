@@ -429,7 +429,7 @@ type RBDVolumeSource struct {
 // The volume must also be in the same region as the kubelet.
 type CinderVolumeSource struct {
 	// volume id used to identify the volume in cinder
-	ID string `json:"id" description:"Cinder volume id"`
+	VolumeID string `json:"volumeID" description:"Cinder volume id"`
 	// Required: Filesystem type to mount.
 	// Must be a filesystem type supported by the host operating system.
 	// Only ext3 and ext4 are allowed

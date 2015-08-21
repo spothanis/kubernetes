@@ -59,7 +59,6 @@ func (plugin *cinderPlugin) CanSupport(spec *volume.Spec) bool {
 func (plugin *cinderPlugin) GetAccessModes() []api.PersistentVolumeAccessMode {
 	return []api.PersistentVolumeAccessMode{
 		api.ReadWriteOnce,
-		api.ReadOnlyMany,
 	}
 }
 
@@ -75,7 +74,7 @@ func (plugin *cinderPlugin) newBuilderInternal(spec *volume.Spec, podUID types.U
 		cinder = spec.PersistentVolumeSource.Cinder
 	}
 
-	pdName := cinder.ID
+	pdName := cinder.VolumeID
 	fsType := cinder.FSType
 	readOnly := cinder.ReadOnly
 

@@ -80,8 +80,8 @@ func TestPlugin(t *testing.T) {
 		Name: "vol1",
 		VolumeSource: api.VolumeSource{
 			Cinder: &api.CinderVolumeSource{
-				ID:     "pd",
-				FSType: "ext4",
+				VolumeID: "pd",
+				FSType:   "ext4",
 			},
 		},
 	}
