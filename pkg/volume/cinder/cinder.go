@@ -68,7 +68,6 @@ func (plugin *cinderPlugin) NewBuilder(spec *volume.Spec, pod *api.Pod, _ volume
 }
 
 func (plugin *cinderPlugin) newBuilderInternal(spec *volume.Spec, podUID types.UID, manager cdManager, mounter mount.Interface) (volume.Builder, error) {
-
 	var cinder *api.CinderVolumeSource
 	if spec.VolumeSource.Cinder != nil {
 		cinder = spec.VolumeSource.Cinder
@@ -76,7 +75,7 @@ func (plugin *cinderPlugin) newBuilderInternal(spec *volume.Spec, podUID types.U
 		cinder = spec.PersistentVolumeSource.Cinder
 	}
 
-	pdName := cinder.VolID
+	pdName := cinder.ID
 	fsType := cinder.FSType
 	readOnly := cinder.ReadOnly
 
@@ -99,7 +98,6 @@ func (plugin *cinderPlugin) NewCleaner(volName string, podUID types.UID, mounter
 }
 
 func (plugin *cinderPlugin) newCleanerInternal(volName string, podUID types.UID, manager cdManager, mounter mount.Interface) (volume.Cleaner, error) {
-
 	return &cinderVolumeCleaner{
 		&cinderVolume{
 			podUID:  podUID,
@@ -122,11 +120,8 @@ var _ volume.Builder = &cinderVolumeBuilder{}
 
 type cinderVolumeBuilder struct {
 	*cinderVolume
-
-	fsType string
-
-	readOnly bool
-
+	fsType             string
+	readOnly           bool
 	blockDeviceMounter mount.Interface
 }
 
@@ -134,8 +129,7 @@ type cinderVolumeBuilder struct {
 // that are attached to the kubelet's host machine and exposed to the pod.
 type cinderVolume struct {
 	volName string
-
-	podUID types.UID
+	podUID  types.UID
 	// Unique identifier of the volume, used to find the disk resource in the provider.
 	pdName string
 	// Filesystem type, optional.
@@ -166,7 +160,6 @@ func (b *cinderVolumeBuilder) SetUp() error {
 
 // SetUp attaches the disk and bind mounts to the volume path.
 func (b *cinderVolumeBuilder) SetUpAt(dir string) error {
-
 	// TODO: handle failed mounts here.
 	notmnt, err := b.mounter.IsLikelyNotMountPoint(dir)
 	glog.V(4).Infof("PersistentDisk set up: %s %v %v", dir, !notmnt, err)

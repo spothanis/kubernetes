@@ -89,7 +89,7 @@ func convert_api_CinderVolumeSource_To_v1_CinderVolumeSource(in *api.CinderVolum
 	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
 		defaulting.(func(*api.CinderVolumeSource))(in)
 	}
-	out.VolID = in.VolID
+	out.ID = in.ID
 	out.FSType = in.FSType
 	out.ReadOnly = in.ReadOnly
 	return nil
@@ -2530,7 +2530,7 @@ func convert_v1_CinderVolumeSource_To_api_CinderVolumeSource(in *CinderVolumeSou
 	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
 		defaulting.(func(*CinderVolumeSource))(in)
 	}
-	out.VolID = in.VolID
+	out.ID = in.ID
 	out.FSType = in.FSType
 	out.ReadOnly = in.ReadOnly
 	return nil

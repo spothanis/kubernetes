@@ -202,7 +202,7 @@ type VolumeSource struct {
 	PersistentVolumeClaim *PersistentVolumeClaimVolumeSource `json:"persistentVolumeClaim,omitempty" description:"a reference to a PersistentVolumeClaim in the same namespace; see http://releases.k8s.io/HEAD/docs/user-guide/persistent-volumes.md#persistentvolumeclaims"`
 	// RBD represents a Rados Block Device mount on the host that shares a pod's lifetime
 	RBD *RBDVolumeSource `json:"rbd,omitempty" description:"rados block volume that will be mounted on the host machine; see http://releases.k8s.io/HEAD/examples/rbd/README.md"`
-	// CinderVolume represents a cinder volume attached and mounted on kubelets host machine
+	// Cinder represents a cinder volume attached and mounted on kubelets host machine
 	Cinder *CinderVolumeSource `json:"cinder,omitempty" description:"Cinder volume that will be attached and mounted on the host machine "`
 }
 
@@ -236,7 +236,7 @@ type PersistentVolumeSource struct {
 	// ISCSI represents an ISCSI Disk resource that is attached to a
 	// kubelet's host machine and then exposed to the pod.
 	ISCSI *ISCSIVolumeSource `json:"iscsi,omitempty" description:"an iSCSI disk resource provisioned by an admin"`
-	// CinderVolume represents a cinder volume attached and mounted on kubelets host machine
+	// Cinder represents a cinder volume attached and mounted on kubelets host machine
 	Cinder *CinderVolumeSource `json:"cinder,omitempty" description:"Cinder volume that will be attached and mounted on the host machine "`
 }
 
@@ -429,7 +429,7 @@ type RBDVolumeSource struct {
 // The volume must also be in the same region as the kubelet.
 type CinderVolumeSource struct {
 	// volume id used to identify the volume in cinder
-	VolID string `json:"id" description:"Cinder volume id"`
+	ID string `json:"id" description:"Cinder volume id"`
 	// Required: Filesystem type to mount.
 	// Must be a filesystem type supported by the host operating system.
 	// Only ext3 and ext4 are allowed

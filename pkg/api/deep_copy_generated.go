@@ -78,7 +78,7 @@ func deepCopy_api_Capabilities(in Capabilities, out *Capabilities, c *conversion
 }
 
 func deepCopy_api_CinderVolumeSource(in CinderVolumeSource, out *CinderVolumeSource, c *conversion.Cloner) error {
-	out.VolID = in.VolID
+	out.ID = in.ID
 	out.FSType = in.FSType
 	out.ReadOnly = in.ReadOnly
 	return nil

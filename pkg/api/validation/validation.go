@@ -488,7 +488,7 @@ func validateRBD(rbd *api.RBDVolumeSource) errs.ValidationErrorList {
 
 func validateCinderVolumeSource(cd *api.CinderVolumeSource) errs.ValidationErrorList {
 	allErrs := errs.ValidationErrorList{}
-	if cd.VolID == "" {
+	if cd.ID == "" {
 		allErrs = append(allErrs, errs.NewFieldRequired("id"))
 	}
 	if cd.FSType == "" || (cd.FSType != "ext3" && cd.FSType != "ext4") {

@@ -36,7 +36,6 @@ type CinderDiskUtil struct{}
 // Attaches a disk specified by a volume.CinderPersistenDisk to the current kubelet.
 // Mounts the disk to it's global path.
 func (util *CinderDiskUtil) AttachDisk(b *cinderVolumeBuilder, globalPDPath string) error {
-
 	options := []string{}
 	if b.readOnly {
 		options = append(options, "ro")
@@ -95,7 +94,6 @@ func (util *CinderDiskUtil) AttachDisk(b *cinderVolumeBuilder, globalPDPath stri
 }
 
 func makeDevicePath(diskid string) string {
-
 	files, _ := ioutil.ReadDir("/dev/disk/by-id/")
 	for _, f := range files {
 		if strings.Contains(f.Name(), "virtio-") {
@@ -112,9 +110,7 @@ func makeDevicePath(diskid string) string {
 
 // Unmounts the device and detaches the disk from the kubelet's host machine.
 func (util *CinderDiskUtil) DetachDisk(cd *cinderVolumeCleaner) error {
-
 	globalPDPath := makeGlobalPDName(cd.plugin.host, cd.pdName)
-
 	if err := cd.mounter.Unmount(globalPDPath); err != nil {
 		return err
 	}
